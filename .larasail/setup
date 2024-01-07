@@ -12,7 +12,7 @@
 . /etc/.larasail/includes/colors
 . /etc/.larasail/includes/format
 
-PHP="8.1"
+PHP="8.3"
 MYSQL_SERVICE="MySQL"
 MYSQL_PACKAGE="mysql-server"
 INSTALL_REDIS=0
@@ -178,13 +178,13 @@ sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 echo "0 0,12 * * * root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && certbot renew -q" | sudo tee -a /etc/crontab > /dev/null
 
 
-if [ $INSTALL_REDIS -eq 1 ] ; then
+#if [ $INSTALL_REDIS -eq 1 ] ; then
 	bar
 	cyan "| Installing Redis"
 	bar
 
 	sudo apt -y install redis-server
-fi
+#fi
 
 setsail
 
