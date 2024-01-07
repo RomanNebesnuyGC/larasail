@@ -17,7 +17,7 @@ You'll need a DigitalOcean account before getting started ([Signup here](https:/
 SSH into your server and run the following command:
 
 ```
-curl -sL https://github.com/thedevdojo/larasail/archive/master.tar.gz | tar xz && source larasail-master/install
+curl -sL https://github.com/RomanNebesnuyGC/larasail/archive/master.tar.gz | tar xz && source larasail-master/install
 ```
 
 You can make sure it's installed by running:
