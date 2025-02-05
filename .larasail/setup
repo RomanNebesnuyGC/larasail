@@ -12,12 +12,14 @@
 . /etc/.larasail/includes/colors
 . /etc/.larasail/includes/format
 
-PHP="8.2"
+PHP="8.3"
 MYSQL_SERVICE="MySQL"
 MYSQL_PACKAGE="mysql-server"
-INSTALL_REDIS=0
+INSTALL_REDIS=1
 
-if [ "$2" = "php83" ] || [ "$3" = "php83" ]; then
+if [ "$2" = "php84" ] || [ "$3" = "php84" ]; then
+   PHP="8.4"
+elif [ "$2" = "php83" ] || [ "$3" = "php83" ]; then
    PHP="8.3"
 elif [ "$2" = "php81" ] || [ "$3" = "php81" ]; then
    PHP="8.1"
@@ -152,7 +154,7 @@ bar
 cyan "| Installing npm"
 bar
 
-curl -sL https://deb.nodesource.com/setup_20.x | sudo bash -
+curl -sL https://deb.nodesource.com/setup_22.x | sudo bash -
 sudo apt-get install -y nodejs
 
 bar
