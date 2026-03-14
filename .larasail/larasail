@@ -12,6 +12,13 @@
 if [ "$1" = "-h" ] || [ -z "$1" ]
 then
     . /etc/.larasail/includes/help
+elif [ "$1" = "-v" ] || [ "$1" = "version" ]
+then
+    . /etc/.larasail/includes/colors
+    LARASAIL_VERSION=$(cat /etc/.larasail/VERSION 2>/dev/null || echo "unknown")
+    echo "LaraSail ${Cyan}${LARASAIL_VERSION}${Color_Off}"
+    echo "Repo:      https://github.com/RomanNebesnuyGC/larasail"
+    echo "Installed: /etc/.larasail/"
 elif [ "$1" = "host" ] ; then
 	sudo sh /etc/.larasail/$1 $2 $3 $4
 else
