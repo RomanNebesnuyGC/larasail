@@ -5,31 +5,34 @@
 # Larasail Initial Setup
 #--------------------------------------------------------------------------
 #
-# This file will setup the server with Nginx, PHP, and Mysql.
+# This file will setup the server with Nginx, PHP, and a database.
+# Defaults: PHP 8.5, MariaDB 11.8 LTS, Redis.
+#
+# Usage: larasail setup [php85|php84|...] [mariadb|mysql|pgsql]
 #
 #/
 
 . /etc/.larasail/includes/colors
 . /etc/.larasail/includes/format
 
-PHP="8.3"
-MYSQL_SERVICE="MySQL"
-MYSQL_PACKAGE="mysql-server"
-INSTALL_REDIS=1
+PHP="8.5"
+DB_SERVICE="MariaDB"
+DB_PACKAGE="mariadb-server"
 
 for arg in "$2" "$3" "$4"; do
    case "$arg" in
-      php85) PHP="8.5" ;;
-      php84) PHP="8.4" ;;
-      php83) PHP="8.3" ;;
-      php81) PHP="8.1" ;;
-      php80) PHP="8.0" ;;
-      php74) PHP="7.4" ;;
-      php73) PHP="7.3" ;;
-      php72) PHP="7.2" ;;
-      php71) PHP="7.1" ;;
-      mariadb) MYSQL_SERVICE="MariaDB"; MYSQL_PACKAGE="mariadb-server" ;;
-      redis) INSTALL_REDIS=1 ;;
+      php85)   PHP="8.5" ;;
+      php84)   PHP="8.4" ;;
+      php83)   PHP="8.3" ;;
+      php81)   PHP="8.1" ;;
+      php80)   PHP="8.0" ;;
+      php74)   PHP="7.4" ;;
+      php73)   PHP="7.3" ;;
+      php72)   PHP="7.2" ;;
+      php71)   PHP="7.1" ;;
+      mysql)   DB_SERVICE="MySQL";      DB_PACKAGE="mysql-server" ;;
+      mariadb) DB_SERVICE="MariaDB";    DB_PACKAGE="mariadb-server" ;;
+      pgsql)   DB_SERVICE="PostgreSQL"; DB_PACKAGE="postgresql postgresql-contrib" ;;
    esac
 done
 
@@ -41,19 +44,17 @@ if [ $CHECK_SWAP -lt 1 ] ; then
     cyan "| Adding swap file "
     bar
 
-    # Create a swap file
     sudo fallocate -l 1G /swapfile
     sudo chmod 600 /swapfile
     sudo mkswap /swapfile
     sudo swapon /swapfile
 
-    # Making the swap file permanent
     sudo cp /etc/fstab /etc/fstab.bak
     echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 fi
 
 bar
-cyan "| Installing Nginx ";
+cyan "| Installing Nginx "
 bar
 
 sudo apt-get update
@@ -63,53 +64,51 @@ sudo ufw allow 'Nginx HTTPS'
 sudo systemctl restart nginx
 
 bar
-cyan "| Installing $MYSQL_SERVICE ";
+cyan "| Installing $DB_SERVICE "
 bar
 
-MYSQLPASS=$(openssl rand -base64 32)
-MYSQLUSER='dbadmin'
+DBPASS=$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32)
+DBUSER='dbadmin'
 
 sudo apt-get update
 if [ ! -d /etc/.larasail/tmp ]; then
-  mkdir /etc/.larasail/tmp
+    mkdir /etc/.larasail/tmp
 fi
 
+if [ "$DB_SERVICE" = "MariaDB" ]; then
+    sudo apt-get install -y apt-transport-https
+    curl -LsS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8"
+    sudo apt-get update
+    sudo apt-get install -y ${DB_PACKAGE}
+    sudo service mariadb start
+    sudo mysql -e "CREATE USER '${DBUSER}'@'localhost' IDENTIFIED BY '${DBPASS}'; GRANT ALL PRIVILEGES ON *.* TO '${DBUSER}'@'localhost' WITH GRANT OPTION;"
+elif [ "$DB_SERVICE" = "MySQL" ]; then
+    export DEBIAN_FRONTEND=noninteractive
+    echo "mysql-server mysql-server/root-pass password ${DBPASS}" | sudo debconf-set-selections
+    echo "mysql-server mysql-server/re-root-pass password ${DBPASS}" | sudo debconf-set-selections
+    sudo apt-get install -y ${DB_PACKAGE}
+    sudo service mysql start
+    sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${DBPASS}';"
+    sudo mysql -u root -p${DBPASS} -e "CREATE USER '${DBUSER}'@'localhost' IDENTIFIED BY '${DBPASS}'; GRANT ALL PRIVILEGES ON *.* TO '${DBUSER}'@'localhost' WITH GRANT OPTION;"
+elif [ "$DB_SERVICE" = "PostgreSQL" ]; then
+    sudo apt-get install -y ${DB_PACKAGE}
+    sudo service postgresql start
+    sudo -u postgres psql -c "CREATE USER ${DBUSER} WITH PASSWORD '${DBPASS}';"
+    sudo -u postgres psql -c "ALTER USER ${DBUSER} WITH SUPERUSER;"
+fi
 
 echo '[client]' > /home/larasail/.my.cnf
-echo "user=${MYSQLUSER}" >> /home/larasail/.my.cnf
-echo "password='${MYSQLPASS}'" >> /home/larasail/.my.cnf
-
+echo "user=${DBUSER}" >> /home/larasail/.my.cnf
+echo "password=${DBPASS}" >> /home/larasail/.my.cnf
 chmod 600 /home/larasail/.my.cnf
-
-export DEBIAN_FRONTEND=noninteractive
-echo "mysql-server-5.7 mysql-server/root_password password $MYSQLPASS" | sudo debconf-set-selections
-echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQLPASS" | sudo debconf-set-selections
-echo "mysql-server mysql-server/root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
-echo "mysql-server mysql-server/re-root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
-echo "mysql-server-8.0 mysql-server/root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
-echo "mysql-server-8.0 mysql-server/re-root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
-
-
-if [ "$MYSQL_SERVICE" = "MariaDB" ]; then
-   sudo apt-get install -y curl apt-transport-https
-   curl -LsS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8"
-   sudo apt-get update
-fi
-
-sudo apt-get install -y ${MYSQL_PACKAGE}
-
-sudo service mysql start
-sudo mysql -uroot -p${MYSQLPASS} -e "CREATE USER ${MYSQLUSER}@localhost IDENTIFIED BY '${MYSQLPASS}'; GRANT ALL PRIVILEGES ON *.* TO ${MYSQLUSER}@localhost WITH GRANT OPTION;"
 
 # Get current client IP address
 CLIENT_IP=$(echo $SSH_CLIENT | awk '{ print $1}')
-
-# To enable 3306 ports in order to connect to database via Sequel Pro, run:
+# To enable 3306 ports for remote DB access run:
 # sudo ufw allow from ${CLIENT_IP}/32 to any port 3306
 
-
 bar
-cyan "| Installing PHP $PHP and all necessary files";
+cyan "| Installing PHP $PHP and all necessary files"
 bar
 
 sudo apt-get update
@@ -121,11 +120,11 @@ sudo add-apt-repository -y ppa:ondrej/php
 sudo apt-get -y update
 sudo apt-get -y upgrade
 
-sudo apt-get install -y unzip
-sudo apt-get install -y php-cli
-sudo apt-get install -y php$PHP-cli php$PHP-common php$PHP-mysql php$PHP-gd php$PHP-mysql php$PHP-curl php$PHP-mbstring php$PHP-xml php$PHP-zip php$PHP-fpm php$PHP-sqlite3 php$PHP-intl curl git
+sudo apt-get install -y unzip curl git
+sudo apt-get install -y php$PHP-cli php$PHP-common php$PHP-mysql php$PHP-pgsql php$PHP-gd \
+    php$PHP-curl php$PHP-mbstring php$PHP-xml php$PHP-zip php$PHP-fpm php$PHP-sqlite3 php$PHP-intl
 
-sudo rm /usr/bin/php
+sudo rm -f /usr/bin/php
 sudo ln -s /usr/bin/php$PHP /usr/bin/php
 
 bar
@@ -135,7 +134,7 @@ bar
 sudo chown -R larasail:larasail /var/www
 
 bar
-cyan "| Installing Composer ";
+cyan "| Installing Composer "
 bar
 
 curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
@@ -155,12 +154,11 @@ sudo chown -R $USER:$USER ~/.composer/
 composer global require "laravel/installer"
 
 bar
-cyan "| Installing certbot ";
+cyan "| Installing certbot "
 bar
 
-sudo apt-get install -y python3 python3-venv libaugeas0 python3-pip
-#Remove certbot in case it is already installed from the repository/ppa to avoid conflict
-sudo apt-get remove --purge certbot python3-certbot-nginx
+sudo apt-get install -y python3 python3-venv libaugeas0
+sudo apt-get remove --purge -y certbot python3-certbot-nginx
 
 sudo python3 -m venv /opt/certbot/
 sudo /opt/certbot/bin/pip install --upgrade pip
@@ -168,17 +166,14 @@ sudo /opt/certbot/bin/pip install certbot certbot-nginx
 sudo rm -f /usr/bin/certbot
 sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 
-#Set up automatic certificate renewal
+# Automatic certificate renewal
 echo "0 0,12 * * * root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && certbot renew -q" | sudo tee -a /etc/crontab > /dev/null
 
+bar
+cyan "| Installing Redis"
+bar
 
-if [ $INSTALL_REDIS -eq 1 ] ; then
-	bar
-	cyan "| Installing Redis"
-	bar
-
-	sudo apt -y install redis-server
-fi
+sudo apt-get -y install redis-server
 
 setsail
 

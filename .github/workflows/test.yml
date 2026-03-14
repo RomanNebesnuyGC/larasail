@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats-core
+        run: |
+          git clone https://github.com/bats-core/bats-core.git /tmp/bats-core
+          sudo /tmp/bats-core/install.sh /usr/local
+
+      - name: Run unit tests
+        run: bats tests/
+
+  lint:
+    name: Shell Lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Lint scripts
+        run: |
+          shellcheck -S warning \
+            .larasail/setup \
+            .larasail/new \
+            .larasail/host \
+            .larasail/database \
+            .larasail/hosts \
+            .larasail/update \
+            .larasail/laravel \
+            .larasail/wave \
+            .larasail/pass \
+            .larasail/mysqlpass \
+            .larasail/enter \
+            install

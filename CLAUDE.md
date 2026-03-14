@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LaraSail is a Bash CLI tool for setting up and managing Laravel servers on DigitalOcean (Ubuntu). It installs Nginx, PHP, MySQL/MariaDB, Node, Redis, and manages Nginx virtual hosts, SSL certificates, databases, and Laravel/Wave projects.
+LaraSail is a Bash CLI tool for setting up and managing Laravel servers on DigitalOcean (Ubuntu 24). It installs Nginx, PHP, MariaDB/MySQL/PostgreSQL, Node, Redis, and manages Nginx virtual hosts, SSL certificates, databases, and Laravel/Wave projects.
 
 ## Installation & Usage
 
@@ -17,14 +17,34 @@ This runs `install`, which copies `.larasail/` to `/etc/.larasail/` and sets up 
 
 After install, commands are invoked as:
 ```bash
-larasail setup [--php 8.4] [--mariadb] [--redis]
-larasail new myapp [--jet] [--teams] [--wave] [--www-alias]
-larasail host add domain.com /var/www/myapp/public
-larasail database init [--user myuser] [--db mydb]
+larasail setup [php85|php84|...] [mariadb|mysql|pgsql]  # defaults: PHP 8.5, MariaDB 11.8, Redis
+larasail new myapp [--jet livewire|inertia] [--teams] [--wave] [--www-alias]
+larasail host domain.com /var/www/myapp/public [--www-alias]
+larasail hosts list
+larasail database init [--user myuser] [--db mydb] [--force]
+larasail database list
+larasail database pass
 larasail enter
 larasail pass
 larasail mysqlpass
+larasail update
 ```
+
+## Running Tests
+
+```bash
+# Install bats-core first
+git clone https://github.com/bats-core/bats-core.git /tmp/bats-core
+sudo /tmp/bats-core/install.sh /usr/local
+
+# Run all tests
+bats tests/
+
+# Run a single test file
+bats tests/test_setup_args.bats
+```
+
+CI runs automatically on GitHub Actions (Ubuntu 24) on every push/PR.
 
 ## Architecture
 
@@ -32,7 +52,7 @@ All source code lives in `.larasail/`. There is no build step — everything is 
 
 ### Entry point & routing
 
-`.larasail/larasail` is the main dispatcher. It reads the first argument and delegates to the corresponding script in `.larasail/`. The `host` command is special — it re-invokes itself with `sudo`.
+`.larasail/larasail` is the main dispatcher. It sources scripts using `. /etc/.larasail/$1 "$@"` so each script receives the full argument list including its own command name as `$1`. Scripts that accept user arguments (e.g. `new`, `database`, `hosts`) call `shift` at the start to drop the command name. The `host` command is the exception — it runs with `sudo sh` (not sourced) and receives `$2 $3 $4` directly.
 
 ### Shared utilities
 
@@ -41,28 +61,29 @@ Scripts source shared utilities from `.larasail/includes/`:
 - `format` — `bar()`, `setsail()` banner functions
 - `help` — `larasail help` output
 
-Every script typically begins with sourcing these:
-```bash
-source /etc/.larasail/includes/colors
-source /etc/.larasail/includes/format
-```
+Scripts source these with `. /etc/.larasail/includes/colors` (dot-source, not `source`).
 
 ### Runtime paths (on the server)
 
 - Scripts installed to: `/etc/.larasail/`
 - Credentials stored in: `/etc/.larasail/tmp/`
 - Web projects live in: `/var/www/`
-- MySQL credentials: `~/.my.cnf`
+- DB admin credentials: `/home/larasail/.my.cnf` (format: `password=VALUE`, no quotes)
+
+### Setup defaults (Ubuntu 24)
+
+- PHP: 8.5 (via `ppa:ondrej/php`)
+- Database: MariaDB 11.8 LTS (via official MariaDB repo script — Ubuntu repos don't carry 11.8)
+- Redis: always installed, no flag needed
+- Supported DB flags: `mariadb` (default), `mysql`, `pgsql`
 
 ### PHP version handling
 
-`setup` defaults to PHP 8.3. Supported: 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.3, 8.4, 8.5. The detected installed PHP version is used dynamically in `host` to build the correct PHP-FPM socket path (e.g., `/run/php/php8.3-fpm.sock`).
-
-MariaDB uses the official MariaDB repo (`mariadb_repo_setup` script) to install 11.8 LTS — Ubuntu's default repos don't carry it.
+`setup` defaults to PHP 8.5. Supported: 7.1–7.4, 8.0, 8.1, 8.3, 8.4, 8.5. PHP version is detected at runtime in `host` using `php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;'` to build the PHP-FPM socket path (e.g., `/run/php/php8.5-fpm.sock`).
 
 ### SSL
 
-`certbot` is installed during `setup`. Both `host` and `new` prompt interactively to run `certbot --nginx` for Let's Encrypt SSL.
+`certbot` is installed during `setup` (via pip in a venv at `/opt/certbot/`). Both `host` and `new` prompt interactively to run `certbot --nginx` for Let's Encrypt SSL.
 
 ## Code Conventions
 
@@ -70,7 +91,17 @@ MariaDB uses the official MariaDB repo (`mariadb_repo_setup` script) to install 
 - Color output uses constants from `includes/colors` (e.g., `${Green}`, `${BWhite}`, `${Color_Off}`)
 - Section separators use `bar` from `includes/format`
 - Passwords are generated with `openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32`
+- Password extraction from `.my.cnf`: `grep '^password=' /home/larasail/.my.cnf | cut -d'=' -f2-`
+- Nginx configs include security headers: `X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Referrer-Policy`
 - Credentials written to `/etc/.larasail/tmp/` with mode `600`
+
+## Tests
+
+Tests live in `tests/` and use [bats-core](https://github.com/bats-core/bats-core):
+- `tests/test_setup_args.bats` — argument parsing logic
+- `tests/test_nginx_config.bats` — nginx config content and headers
+- `tests/test_db_password.bats` — password extraction and generation
+- `tests/helpers/mock_env.bash` — shared mock environment setup
 
 ## Contributing
 

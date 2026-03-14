@@ -1,0 +1,52 @@
+#!/bin/bash
+
+#/
+#--------------------------------------------------------------------------
+# Larasail Hosts Manager
+#--------------------------------------------------------------------------
+#
+# Manage configured Nginx virtual hosts.
+#
+#/
+
+. /etc/.larasail/includes/colors
+. /etc/.larasail/includes/format
+
+shift
+
+case $1 in
+    'list')
+        setsail
+
+        bar
+        cyan "| Configured Nginx Hosts:"
+        bar
+
+        found=0
+        for f in /etc/nginx/sites-available/*; do
+            name=$(basename "$f")
+            if [ "$name" = "default" ]; then
+                continue
+            fi
+            found=1
+            if [ -L "/etc/nginx/sites-enabled/$name" ]; then
+                cyan "| [enabled]  $name"
+            else
+                cyan "| [disabled] $name"
+            fi
+        done
+
+        if [ $found -eq 0 ]; then
+            cyan "| No hosts configured."
+        fi
+
+        bar
+        ;;
+    *)
+        echo "${Yellow}Usage:${Color_Off}"
+        echo "  larasail hosts <command>"
+        echo ""
+        echo "${Yellow}Commands:${Color_Off}"
+        echo "  ${Yellow}list${Color_Off}    List all configured Nginx virtual hosts"
+        ;;
+esac

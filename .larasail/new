@@ -14,7 +14,7 @@
 
 shift
 
-if [ -z $1 ]; then
+if [ -z "$1" ]; then
     echo "Usage: larasail new <project-name> [--jet <livewire|inertia>] [--teams] [--www-alias]"
     echo ""
     echo "${Cyan}Tip: you can use periods in project name to automatically create a host for it"
@@ -74,7 +74,7 @@ else
     bash /etc/.larasail/laravel "$PROJECT_PATH"
 fi
 
-if [ -n $HOST ]; then
+if [ -n "$HOST" ]; then
     echo "Setting up host '$HOST'..."
     
     if $HOST_WITH_WWW_ALIAS; then

@@ -25,7 +25,7 @@ DATABASE_USER=larasail
 DATABASE_USER_PROMPT=true
 DATABASE_NAME=larasail
 DATABASE_NAME_PROMPT=true
-DATABASE_PASSWORD="$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 14 | head -n 1)"
+DATABASE_PASSWORD="$(openssl rand -base64 32 | tr -dc 'a-zA-Z0-9' | head -c 32)"
 
 shift
 
@@ -33,7 +33,7 @@ create_database_details() {
 
     # Generate temporary mysql config file to avoid password exposure
 
-    ROOT_PASSWORD=$(cat /home/larasail/.my.cnf  | grep password | awk -F'password=' '{print $2}')
+    ROOT_PASSWORD=$(grep '^password=' /home/larasail/.my.cnf | cut -d'=' -f2-)
 
     echo "[client]" >> "/etc/.larasail/tmp/mysql.cnf"
     echo "password=$ROOT_PASSWORD" >> "/etc/.larasail/tmp/mysql.cnf"
@@ -181,12 +181,27 @@ case $1 in
         bar
         exit
         ;;
+    'list')
+        setsail
+
+        bar
+        cyan "| Databases:"
+        bar
+        ROOT_PASSWORD=$(grep '^password=' /home/larasail/.my.cnf | cut -d'=' -f2-)
+        mysql --defaults-extra-file=<(echo -e "[client]\npassword=$ROOT_PASSWORD") \
+            -e "SHOW DATABASES;" 2>/dev/null | grep -Ev "^(Database|information_schema|performance_schema|mysql|sys)$" | while read db; do
+            cyan "| $db"
+        done
+        bar
+        exit
+        ;;
     *)
         echo "${Yellow}Usage:${Color_Off}"
         echo "  larasail database <command>"
         echo ""
         echo "${Yellow}Commands:${Color_Off}"
         echo "  ${Yellow}init${Color_Off} [--user NAME] [--db NAME] [--force]\tCreate larasail database, user & populate .env file"
+        echo "  ${Yellow}list${Color_Off}                                    \tList all user databases"
         echo "  ${Yellow}pass${Color_Off}                                    \tRetrieve current database password"
         exit
 esac

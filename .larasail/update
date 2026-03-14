@@ -2,10 +2,10 @@
 
 #/
 #--------------------------------------------------------------------------
-# Larasail Mysql Password
+# Larasail Update
 #--------------------------------------------------------------------------
 #
-# This file will display the MySQL password
+# Re-downloads and installs the latest version of LaraSail.
 #
 #/
 
@@ -14,9 +14,8 @@
 
 setsail
 
-MYSQLPASS=$(grep '^password=' /home/larasail/.my.cnf | cut -d'=' -f2-)
+bar
+cyan "| Updating LaraSail "
+bar
 
-bar
-cyan "| MySQL Password:"
-cyan "| $MYSQLPASS"
-bar
+curl -sL https://larasail.com/install | bash
