@@ -10,7 +10,7 @@ LaraSail is a Bash CLI tool for setting up and managing Laravel servers on Digit
 
 The tool is installed on a server via:
 ```bash
-curl -sL https://larasail.com/install | bash
+curl -sL https://github.com/RomanNebesnuyGC/larasail/archive/master.tar.gz | tar xz && source larasail-master/install
 ```
 
 This runs `install`, which copies `.larasail/` to `/etc/.larasail/` and sets up the `larasail` shell alias.
