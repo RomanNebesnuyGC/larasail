@@ -107,13 +107,13 @@ Tests live in `tests/` and use [bats-core](https://github.com/bats-core/bats-cor
 
 Every push to `master` automatically bumps `.larasail/VERSION`, commits it back (`[skip ci]`), and creates a git tag via `.github/workflows/version.yml`.
 
-Bump rules — include a tag in the commit message:
+**When pushing, always decide the bump type and include the right tag in the commit message:**
 
-| Commit message contains | Bump |
-|------------------------|------|
-| `[major]` | `2.0.0` → `3.0.0` |
-| `[minor]` | `2.0.0` → `2.1.0` |
-| *(anything else)* | `2.0.0` → `2.0.1` (patch, default) |
+| Change type | Include in commit | Example |
+|---|---|---|
+| Bug fix, docs, small improvement | *(nothing)* | `2.0.1 → 2.0.2` |
+| New command, new flag, new feature | `[minor]` | `2.0.2 → 2.1.0` |
+| Breaking default change, removed command | `[major]` | `2.1.0 → 3.0.0` |
 
 The VERSION file lives in `.larasail/VERSION` and is copied to `/etc/.larasail/VERSION` on install, so any server can run `larasail version` to see exactly what is installed and from which repo.
 
