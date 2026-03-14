@@ -103,6 +103,20 @@ Tests live in `tests/` and use [bats-core](https://github.com/bats-core/bats-cor
 - `tests/test_db_password.bats` — password extraction and generation
 - `tests/helpers/mock_env.bash` — shared mock environment setup
 
+## Versioning
+
+Every push to `master` automatically bumps `.larasail/VERSION`, commits it back (`[skip ci]`), and creates a git tag via `.github/workflows/version.yml`.
+
+Bump rules — include a tag in the commit message:
+
+| Commit message contains | Bump |
+|------------------------|------|
+| `[major]` | `2.0.0` → `3.0.0` |
+| `[minor]` | `2.0.0` → `2.1.0` |
+| *(anything else)* | `2.0.0` → `2.0.1` (patch, default) |
+
+The VERSION file lives in `.larasail/VERSION` and is copied to `/etc/.larasail/VERSION` on install, so any server can run `larasail version` to see exactly what is installed and from which repo.
+
 ## Contributing
 
 Per `CONTRIBUTING.md`: all source changes go in `.larasail/`. The `install` script at the root is only the bootstrapper that copies `.larasail/` into place on the server.
