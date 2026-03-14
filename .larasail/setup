@@ -17,32 +17,21 @@ MYSQL_SERVICE="MySQL"
 MYSQL_PACKAGE="mysql-server"
 INSTALL_REDIS=1
 
-if [ "$2" = "php84" ] || [ "$3" = "php84" ]; then
-   PHP="8.4"
-elif [ "$2" = "php83" ] || [ "$3" = "php83" ]; then
-   PHP="8.3"
-elif [ "$2" = "php81" ] || [ "$3" = "php81" ]; then
-   PHP="8.1"
-elif [ "$2" = "php80" ] || [ "$3" = "php80" ]; then
-   PHP="8.0"
-elif [ "$2" = "php74" ] || [ "$3" = "php74" ]; then
-   PHP="7.4"
-elif [ "$2" = "php73" ] || [ "$3" = "php73" ]; then
-   PHP="7.3"
-elif [ "$2" = "php72" ] || [ "$3" = "php72" ]; then
-   PHP="7.2"
-elif [ "$2" = "php71" ] || [ "$3" = "php71" ]; then
-   PHP="7.1"
-fi
-
-if [ "$2" = "mariadb" ] || [ "$3" = "mariadb" ]; then
-   MYSQL_SERVICE="MariaDB"
-   MYSQL_PACKAGE="mariadb-server"
-fi
-
-if [ "$2" = "redis" ] || [ "$3" = "redis" ]; then
-   INSTALL_REDIS=1
-fi
+for arg in "$2" "$3" "$4"; do
+   case "$arg" in
+      php85) PHP="8.5" ;;
+      php84) PHP="8.4" ;;
+      php83) PHP="8.3" ;;
+      php81) PHP="8.1" ;;
+      php80) PHP="8.0" ;;
+      php74) PHP="7.4" ;;
+      php73) PHP="7.3" ;;
+      php72) PHP="7.2" ;;
+      php71) PHP="7.1" ;;
+      mariadb) MYSQL_SERVICE="MariaDB"; MYSQL_PACKAGE="mariadb-server" ;;
+      redis) INSTALL_REDIS=1 ;;
+   esac
+done
 
 setsail
 
@@ -101,9 +90,10 @@ echo "mysql-server-8.0 mysql-server/root-pass password ${MYSQLPASS}"|sudo debcon
 echo "mysql-server-8.0 mysql-server/re-root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
 
 
-if [ "$2" = "mariadb" ] || [ "$3" = "mariadb" ]; then
-   echo "mariadb-server-10.3 mysql-server/root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
-   echo "mariadb-server-10.3 mysql-server/re-root-pass password ${MYSQLPASS}"|sudo debconf-set-selections
+if [ "$MYSQL_SERVICE" = "MariaDB" ]; then
+   sudo apt-get install -y curl apt-transport-https
+   curl -LsS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | sudo bash -s -- --mariadb-server-version="mariadb-11.8"
+   sudo apt-get update
 fi
 
 sudo apt-get install -y ${MYSQL_PACKAGE}

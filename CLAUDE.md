@@ -56,7 +56,9 @@ source /etc/.larasail/includes/format
 
 ### PHP version handling
 
-`setup` defaults to PHP 8.3. Supported: 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.3, 8.4. The detected installed PHP version is used dynamically in `host` to build the correct PHP-FPM socket path (e.g., `/run/php/php8.3-fpm.sock`).
+`setup` defaults to PHP 8.3. Supported: 7.1, 7.2, 7.3, 7.4, 8.0, 8.1, 8.3, 8.4, 8.5. The detected installed PHP version is used dynamically in `host` to build the correct PHP-FPM socket path (e.g., `/run/php/php8.3-fpm.sock`).
+
+MariaDB uses the official MariaDB repo (`mariadb_repo_setup` script) to install 11.8 LTS — Ubuntu's default repos don't carry it.
 
 ### SSL
 
