@@ -27,6 +27,8 @@ larasail database pass
 larasail enter
 larasail pass
 larasail mysqlpass
+larasail changelog              # show full changelog
+larasail changelog 2.0.1        # show changelog for a specific version
 larasail update
 ```
 

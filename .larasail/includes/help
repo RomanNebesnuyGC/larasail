@@ -38,5 +38,7 @@ echo "  ${Yellow}database list${Color_Off}                        List all user 
 echo "  ${Yellow}database pass${Color_Off}                        Retrieve stored database passwords"
 echo "  ${Yellow}pass${Color_Off}                                 Display the larasail user password"
 echo "  ${Yellow}mysqlpass${Color_Off}                            Display the database admin password"
-echo "  ${Yellow}version${Color_Off}                              Show installed version and repo"
+echo "  ${Yellow}version${Color_Off}                              Show installed version, repo, and changelog"
+echo "  ${Yellow}changelog${Color_Off}                            Show full changelog"
+echo "  ${Yellow}changelog \$version${Color_Off}                   Show changelog for a specific version (e.g. 2.0.1)"
 echo "  ${Yellow}update${Color_Off}                               Update LaraSail to the latest version"

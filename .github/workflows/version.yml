@@ -52,11 +52,41 @@ jobs:
       - name: Update VERSION file
         run: echo "${{ steps.version.outputs.new }}" > .larasail/VERSION
 
+      - name: Generate changelog entry
+        run: |
+          NEW="${{ steps.version.outputs.new }}"
+          PREV="${{ steps.version.outputs.current }}"
+          DATE=$(date +%Y-%m-%d)
+
+          PREV_TAG=$(git tag --list "v${PREV}" | head -n 1)
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"- %s" --no-merges | grep -v '\[skip ci\]')
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges | grep -v '\[skip ci\]')
+          fi
+
+          if [ -z "$COMMITS" ]; then
+            COMMITS="- (no changes recorded)"
+          fi
+
+          {
+            head -n 1 CHANGELOG.md
+            echo ""
+            echo "## [${NEW}] — ${DATE}"
+            echo ""
+            echo "$COMMITS"
+            echo ""
+            echo "---"
+            echo ""
+            tail -n +2 CHANGELOG.md
+          } > CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+
       - name: Commit, tag, and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .larasail/VERSION
+          git add .larasail/VERSION CHANGELOG.md
           git commit -m "chore: bump version ${{ steps.version.outputs.current }} → ${{ steps.version.outputs.new }} [skip ci]"
           git tag "v${{ steps.version.outputs.new }}"
           git push

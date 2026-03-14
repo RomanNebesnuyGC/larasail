@@ -13,6 +13,7 @@
 
 # Move the files to /etc/.larasail and create a root larasail alias
 mv larasail-master/.larasail /etc/.larasail
+cp larasail-master/CHANGELOG.md /etc/.larasail/CHANGELOG.md
 echo "alias larasail='sh /etc/.larasail/larasail'" >> /etc/bash.bashrc
 
 

@@ -19,6 +19,10 @@ then
     echo "LaraSail ${Cyan}${LARASAIL_VERSION}${Color_Off}"
     echo "Repo:      https://github.com/RomanNebesnuyGC/larasail"
     echo "Installed: /etc/.larasail/"
+    if [ -f /etc/.larasail/CHANGELOG.md ]; then
+        echo ""
+        awk -v ver="${LARASAIL_VERSION}" '/^## \[/{if(found)exit; if(index($0,"["ver"]"))found=1} found{print}' /etc/.larasail/CHANGELOG.md
+    fi
 elif [ "$1" = "host" ] ; then
 	sudo sh /etc/.larasail/$1 $2 $3 $4
 else

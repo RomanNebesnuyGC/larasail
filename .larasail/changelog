@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#/
+#--------------------------------------------------------------------------
+# Larasail Changelog
+#--------------------------------------------------------------------------
+#
+# Display the changelog. Optionally filter to a specific version.
+# Usage:
+#   larasail changelog            — show full changelog
+#   larasail changelog 2.0.1      — show changelog for a specific version
+#
+#/
+
+. /etc/.larasail/includes/colors
+
+shift
+
+CHANGELOG_FILE="/etc/.larasail/CHANGELOG.md"
+
+if [ ! -f "$CHANGELOG_FILE" ]; then
+    echo "${Red}Changelog not found at ${CHANGELOG_FILE}${Color_Off}"
+    exit 1
+fi
+
+if [ -z "$1" ]; then
+    cat "$CHANGELOG_FILE"
+else
+    RESULT=$(awk -v ver="$1" '/^## \[/{if(found)exit; if(index($0,"["ver"]"))found=1} found{print}' "$CHANGELOG_FILE")
+    if [ -z "$RESULT" ]; then
+        echo "${Red}No changelog entry found for version ${1}${Color_Off}"
+        exit 1
+    fi
+    echo "$RESULT"
+fi
