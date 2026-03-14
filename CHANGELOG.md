@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0] — 2026-03-14
+
+- Add changelog command and auto-generate CHANGELOG.md on version bump [minor]
+
+---
+
+
 ## [2.0.0] — 2026-03-14
 
 ### Changed — Breaking defaults
