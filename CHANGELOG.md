@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3] — 2026-03-15
+
+- Show progress and version diff during larasail update
+
+---
+
+
 ## [2.1.2] — 2026-03-15
 
 - Fix update command not actually downloading latest version
