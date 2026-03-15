@@ -18,10 +18,24 @@ bar
 cyan "| Updating LaraSail "
 bar
 
+OLD_VERSION=$(cat /etc/.larasail/VERSION 2>/dev/null || echo "unknown")
+
+cyan "| Current version: $OLD_VERSION"
+cyan "| Downloading latest release..."
+bar
+
 TMPDIR=$(mktemp -d)
 curl -sL https://github.com/RomanNebesnuyGC/larasail/archive/master.tar.gz | tar xz -C "$TMPDIR"
+
+cyan "| Installing..."
 rm -rf /etc/.larasail
 mv "$TMPDIR/larasail-master/.larasail" /etc/.larasail
 cp "$TMPDIR/larasail-master/CHANGELOG.md" /etc/.larasail/CHANGELOG.md
 rm -rf "$TMPDIR"
 chown -R larasail:larasail /etc/.larasail/tmp 2>/dev/null || true
+
+NEW_VERSION=$(cat /etc/.larasail/VERSION 2>/dev/null || echo "unknown")
+
+bar
+green "| LaraSail updated: $OLD_VERSION -> $NEW_VERSION"
+bar
