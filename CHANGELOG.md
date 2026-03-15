@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1] — 2026-03-15
+
+- Fix database list crashing with syntax error on sh/dash
+
+---
+
+
 ## [2.1.0] — 2026-03-14
 
 - Add changelog command and auto-generate CHANGELOG.md on version bump [minor]
