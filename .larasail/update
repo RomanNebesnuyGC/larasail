@@ -18,4 +18,10 @@ bar
 cyan "| Updating LaraSail "
 bar
 
-curl -sL https://larasail.com/install | bash
+TMPDIR=$(mktemp -d)
+curl -sL https://github.com/RomanNebesnuyGC/larasail/archive/master.tar.gz | tar xz -C "$TMPDIR"
+rm -rf /etc/.larasail
+mv "$TMPDIR/larasail-master/.larasail" /etc/.larasail
+cp "$TMPDIR/larasail-master/CHANGELOG.md" /etc/.larasail/CHANGELOG.md
+rm -rf "$TMPDIR"
+chown -R larasail:larasail /etc/.larasail/tmp 2>/dev/null || true
