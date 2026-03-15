@@ -188,10 +188,13 @@ case $1 in
         cyan "| Databases:"
         bar
         ROOT_PASSWORD=$(grep '^password=' /home/larasail/.my.cnf | cut -d'=' -f2-)
-        mysql --defaults-extra-file=<(echo -e "[client]\npassword=$ROOT_PASSWORD") \
+        echo "[client]" > "/etc/.larasail/tmp/mysql.cnf"
+        echo "password=$ROOT_PASSWORD" >> "/etc/.larasail/tmp/mysql.cnf"
+        mysql --defaults-extra-file=/etc/.larasail/tmp/mysql.cnf \
             -e "SHOW DATABASES;" 2>/dev/null | grep -Ev "^(Database|information_schema|performance_schema|mysql|sys)$" | while read db; do
             cyan "| $db"
         done
+        rm -f "/etc/.larasail/tmp/mysql.cnf"
         bar
         exit
         ;;
