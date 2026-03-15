@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.2] — 2026-03-15
+
+- Fix update command not actually downloading latest version
+
+---
+
+
 ## [2.1.1] — 2026-03-15
 
 - Fix database list crashing with syntax error on sh/dash
