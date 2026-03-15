@@ -100,6 +100,7 @@ fi
 echo '[client]' > /home/larasail/.my.cnf
 echo "user=${DBUSER}" >> /home/larasail/.my.cnf
 echo "password=${DBPASS}" >> /home/larasail/.my.cnf
+chown larasail:larasail /home/larasail/.my.cnf
 chmod 600 /home/larasail/.my.cnf
 
 # Get current client IP address
