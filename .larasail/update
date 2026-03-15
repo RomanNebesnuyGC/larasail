@@ -28,11 +28,12 @@ TMPDIR=$(mktemp -d)
 curl -sL https://github.com/RomanNebesnuyGC/larasail/archive/master.tar.gz | tar xz -C "$TMPDIR"
 
 cyan "| Installing..."
-rm -rf /etc/.larasail
-mv "$TMPDIR/larasail-master/.larasail" /etc/.larasail
-cp "$TMPDIR/larasail-master/CHANGELOG.md" /etc/.larasail/CHANGELOG.md
+sudo rm -rf /etc/.larasail
+sudo mv "$TMPDIR/larasail-master/.larasail" /etc/.larasail
+sudo cp "$TMPDIR/larasail-master/CHANGELOG.md" /etc/.larasail/CHANGELOG.md
 rm -rf "$TMPDIR"
-chown -R larasail:larasail /etc/.larasail/tmp 2>/dev/null || true
+sudo mkdir -p /etc/.larasail/tmp
+sudo chown -R larasail:larasail /etc/.larasail/tmp
 
 NEW_VERSION=$(cat /etc/.larasail/VERSION 2>/dev/null || echo "unknown")
 
