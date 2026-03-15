@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.5] — 2026-03-15
+
+- Fix .my.cnf owned by root after setup, making database commands fail
+
+---
+
+
 ## [2.1.4] — 2026-03-15
 
 - Fix update command failing with permission denied on /etc/.larasail
