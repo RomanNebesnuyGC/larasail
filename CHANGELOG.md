@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.4] — 2026-03-15
+
+- Fix update command failing with permission denied on /etc/.larasail
+
+---
+
+
 ## [2.1.3] — 2026-03-15
 
 - Show progress and version diff during larasail update
